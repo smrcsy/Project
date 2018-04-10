@@ -16,12 +16,10 @@ def connectdb():
 db = connectdb()
 
 def createtable(db): 
-    cursor = db.cursor()
-    # !!!delete exist table
-    # need modified 
-    cursor.execute("DROP TABLE IF EXISTS test")
-    cursor.execute("DROP TABLE IF EXISTS data")
-    sql = """create table test(
+    cursor = db.cursor() 
+    #cursor.execute("DROP TABLE IF EXISTS test")
+    #cursor.execute("DROP TABLE IF EXISTS data")
+    sql = """create table if not exists test(
              id int4 auto_increment primary key,
              name varchar(255),
              starttime decimal(20,18),
@@ -29,7 +27,7 @@ def createtable(db):
              length decimal(20,18),
              instrument varchar(255)
              )"""
-    sql2 = """create table data(
+    sql2 = """create table if not exists data(
               Id int4 auto_increment primary key,
               name varchar(255),
               EIC decimal(6,2),

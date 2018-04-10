@@ -18,6 +18,7 @@ db = connectdb()
 def createtable(db): 
     cursor = db.cursor()
     # !!!delete exist table
+    # need modified 
     cursor.execute("DROP TABLE IF EXISTS test")
     cursor.execute("DROP TABLE IF EXISTS data")
     sql = """create table test(

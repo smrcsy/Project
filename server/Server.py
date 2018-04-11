@@ -1,4 +1,58 @@
 import socket, ssl, threading
+import mysql.connector
+import os,sys
+import time
+import json
+
+def connectdb():
+    print('connect to server')
+    db = mysql.connector.connect(user = 'root',password = 'MINCSY417',
+                                 host = 'localhost',database = 'projectdb')
+
+    print('connected!')
+    return db
+
+db = connectdb()
+
+def createtable(db): 
+    cursor = db.cursor() 
+    #cursor.execute("DROP TABLE IF EXISTS test")
+    #cursor.execute("DROP TABLE IF EXISTS data")
+    sql = """create table if not exists test(
+             id int4 auto_increment primary key,
+             name varchar(255),
+             starttime decimal(20,18),
+             endtime decimal(20,18),
+             length decimal(20,18),
+             instrument varchar(255)
+             )"""
+    sql2 = """create table if not exists data(
+              Id int4 auto_increment primary key,
+              name varchar(255),
+              EIC decimal(6,2),
+              data json
+              )"""
+    # create test
+    cursor.execute(sql)
+    cursor.execute(sql2)
+    
+createtable(db)
+def insert(db,name,start_time,end_time,length,instrument,targets):
+    cursor = db.cursor()
+    sql = """insert into test(name,starttime,endtime,length,instrument)
+             values (%s,%s,%s,%s,%s);"""
+    
+    cursor.execute(sql,(name,start_time,end_time,length,instrument))
+    for target in targets:
+        target1 = target['target']
+        del target['lowerLimit']
+        del target['upperLimit']
+        del target['target']
+        sql2 = """insert into data(name,EIC,data)
+                  values (%s,%s,%s);"""
+        cursor.execute(sql2,(name,target1,json.dumps(target)))
+    db.commit()
+
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)  
 context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
@@ -6,7 +60,7 @@ context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
 server = socket.socket()
 #bind address and port
 
-server.bind(("127.0.0.1",8000))
+server.bind(("127.0.0.1",300))
 #listen request
 server.listen(5)
 
@@ -38,8 +92,18 @@ def receiveFile(conn):
    
         if data == 'finish':
             print ('reach the end of file')
+            with open('./' + s +'.json','r') as f:
+                jsonFile = json.load(f)
+            f.close()
+            name = jsonFile['file name']
+            start_time = jsonFile['start time']
+            end_time = jsonFile['end time']
+            length = jsonFile['length']
+            instrument = jsonFile['instrument']
+            targets = jsonFile['EIC']
+            insert(db,name,start_time,end_time,length,instrument,targets)            
             pass
-        if data == 'begin to send':
+        elif data == 'begin to send':
             print ('create file')
             a += 1
             s = str(a)

@@ -32,19 +32,21 @@ def checkPassword(username,password,conn):
         return 'invalid'
     
 def receiveFile(conn):
+    a = 0
     while True:
         data = conn.recv(1024).decode()
    
         if data == 'finish':
             print ('reach the end of file')
-            break
+            pass
         if data == 'begin to send':
             print ('create file')
-
-            with open('./h.txt', 'w') as f:
+            a += 1
+            s = str(a)
+            with open('./' + s +'.json', 'w') as f:
                 pass
         else:
-            with open('./h.txt', 'a') as f:
+            with open('./' + s +'.json', 'a') as f:
                 f.write(data)
 
 def connect(sock, addr):
@@ -69,12 +71,13 @@ def connect(sock, addr):
                 
     
             
-    connstream.send('Welcome from server!'.encode())
+    #connstream.send('Welcome from server!'.encode())
     print ('receiving, please wait for a second ...')
     
+        
     receiveFile(connstream)
     
-    connstream.close()
+    #connstream.close()
     print ('receive finished')
     print ('Connection from %s:%s closed.' % addr)
 

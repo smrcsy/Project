@@ -1,4 +1,9 @@
 import socket, ssl
+from watchdog.observers import Observer
+from watchdog.events import *
+import os,sys
+import time
+
 
 address='127.0.0.1'   
 port=8000   
@@ -33,7 +38,7 @@ usernameResult()
 passwordResult()
 
 def sendFile(file):
-    print(client.recv(1024).decode())
+    #print(client.recv(1024).decode())
     client.send('begin to send'.encode())   
     print('Begin !')
     with open(file, 'r') as f:
@@ -42,7 +47,21 @@ def sendFile(file):
 
         client.send('finish'.encode())
         print ('Finish !')
-    
-sendFile('./h.txt')
-client.close()
+class FileEventHandler(FileSystemEventHandler):
+    def __init__(self):
+        FileSystemEventHandler.__init__(self)
+    def on_created(self, event):
+        path = event.src_path
+        sendFile(path)
+if __name__ == "__main__":
+    observer = Observer()
+    event_handler = FileEventHandler()
+    observer.schedule(event_handler,r"C:\Users\csy60\Downloads\finalproject-master\finalproject-master",True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 

@@ -12,14 +12,18 @@ import pymzml
 import matplotlib.pyplot as plt
 import json
 import socket, ssl
+import datetime
 
-address='127.0.0.1'   
-port=8000   
-       
+address='0.tcp.ngrok.io'   
+port=14533
+A_path = r"C:\Users\csy60\project\input"
+instrument = 2
+msconvert_path = r'"C:\Program Files\ProteoWizard\ProteoWizard 3.0.11806\msconvert" '
+
 client = socket.socket()
 
 client = ssl.wrap_socket(client,ca_certs="cert.pem",cert_reqs=ssl.CERT_REQUIRED)  
-client.connect(('0.tcp.ngrok.io',12337))
+client.connect((address,port))
 
 def usernameResult():
     while True:
@@ -57,6 +61,7 @@ def sendFile(file):
         client.send('finish'.encode())
         print ('Finish !')
 class FileEventHandler(FileSystemEventHandler):
+    
     def __init__(self):
         FileSystemEventHandler.__init__(self)
      
@@ -67,25 +72,31 @@ class FileEventHandler(FileSystemEventHandler):
             size+= sum([getsize(join(root, name)) for name in files])
         return size
     
-    def produceJson(self,mzmlName):
-        jfile_path=r"C:\Users\csy60\project\json"        
+    def produceJson(self,mzmlName,actual_end_time):
+        jfile_path=A_path       
         jfile_pathname=jfile_path+"\\"+mzmlName.split('.')[0]+".json"
         f=open(jfile_pathname,'a')
         f.close
         print(1)
         js={}#create a empty dict for json data
         js['file name']=mzmlName
-        
-        msrun = pymzml.run.Reader(mzmlName, obo_version = '3.71.0') 
+	
+        mzmlpath = jfile_path+"\\"+mzmlName 
+        msrun = pymzml.run.Reader(mzmlpath, obo_version = '3.71.0') 
         times = msrun['TIC'].mz
+		
         intensities = msrun['TIC'].i
         length =  max(times) - min(times)
+        delta_time=datetime.timedelta(seconds=length)
+        actual_start_time=actual_end_time-delta_time
+        js['actual start time']=str(actual_start_time)
+        js['actual end time']=str(actual_end_time)
         js['start time']=min(times)
         js['end time']=max(times)
         js['length']=length
-        js['instrument']=' '#how to get instrument???
+        js['instrument']=instrument#how to get instrument???
         
-        msrun = pymzml.run.Reader(mzmlName, obo_version = '3.71.0')
+        msrun = pymzml.run.Reader(mzmlpath, obo_version = '3.71.0')
         eicTargets = [100, 200, 300] # user defined
         eicTol = 0.03 # user defined
         results = []
@@ -104,6 +115,7 @@ class FileEventHandler(FileSystemEventHandler):
                 time = spectrum['scan start time']
             except:
                 break 
+            if spectrum['ms level'] != 1: continue
             mzs = np.asarray(spectrum.mz,dtype=np.float64)
             ints = np.asarray(spectrum.i,dtype=np.float64) 
             for target in results:
@@ -144,57 +156,30 @@ class FileEventHandler(FileSystemEventHandler):
                     #print size_list[len(size_list)-3]
                     if size_list[len(size_list)-1]==size_list[len(size_list)-3]:                   
                         print ("size of folder doesn't change")
+                        actual_end_time=datetime.datetime.now()#get the actual end time of generating mzML                        
                         break
                 #every 5 minutes    
                 time.sleep(1)    
                 
             #put mzml file in the file that contain this code file        
-            cmd="msconvert " +convertname+ r" -o C:\Users\csy60\project\input"
+            cmd=msconvert_path+convertname+ ' -o '+A_path
+            print(cmd)
             print(convertname)
             os.system(cmd)
             
             dName=convertname.split("\\")[len(convertname.split("\\"))-1]
-            mzmlName=dName.replace(".d",".mzml")
+            mzmlName=dName.replace(".d",".mzML")
             print(mzmlName)
             #wait for json file produced
-            time.sleep(20)
+            time.sleep(5)
             #when convert to mzml, produce json file
             #self.produceJson("pbQC009.mzML")#change it to mzmlName
-            self.produceJson(mzmlName)
-
-
-"""
-        if event.is_directory:
-            print("directory created:{0}".format(event.src_path))
-        else:
-            print("file created:{0}".format(event.src_path))
-"""        
-"""
-#when remove files/folers
-    def on_moved(self, event):
-       if event.is_directory:
-            print("directory moved from {0} to {1}".format(event.src_path,event.dest_path))
-        else:
-            print("file moved from {0} to {1}".format(event.src_path,event.dest_path))
-
-    def on_deleted(self, event):
-        if event.is_directory:
-            print("directory deleted:{0}".format(event.src_path))
-        else:
-            print("file deleted:{0}".format(event.src_path))
-
-    def on_modified(self, event):
-        if event.is_directory:
-            print("directory modified:{0}".format(event.src_path))
-        else:
-            print("file modified:{0}".format(event.src_path))
-"""    
-    
+            self.produceJson(mzmlName,actual_end_time)
 
 if __name__ == "__main__":
     observer = Observer()
     event_handler = FileEventHandler()
-    observer.schedule(event_handler,r"C:\Users\csy60\project\input",True)
+    observer.schedule(event_handler,A_path,True)
     observer.start()
     try:
         while True:

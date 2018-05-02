@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+function select(xarr,yarr)
+{
+var trace1 = {
+	x:xarr,
+	y:yarr,
+	typr:'lines'
+};
+var data = [trace1];
+Plotly.newPlot('myDiv',data);
+}
+</script>
+
+  
+</head>
+<body>
+<form name="jump" action="/graph" method="post">        
+    <input type="submit" name = "go" value="Go">
+</form>
+<center-left>
+<table>
+	<thead>
+		<tr>
+			<th>name</th>
+		</tr>
+	</thead>
+	
+	<tbody>
+	{% for d in data %}
+		<tr>
+			<th onclick="select({{d.data['RTs']}},{{d.data['ints']}})">{{d.name}}{{d.EIC}}</th>
+		</tr>
+	{% endfor %}
+	</tbody>
+</table>
+<div id='demo'></div>
+<div id="myDiv"><!-- Plotly chart will be drawn inside this DIV --></div>
+
+
+</center-left>
+</body>
+</html>

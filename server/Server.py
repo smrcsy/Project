@@ -21,6 +21,8 @@ def createtable(db):
     sql = """create table if not exists test(
              id int4 auto_increment primary key,
              name varchar(255),
+             actualstarttime varchar(255),
+             actualendtime varchar(255),
              starttime decimal(20,18),
              endtime decimal(20,18),
              length decimal(20,18),
@@ -37,12 +39,13 @@ def createtable(db):
     cursor.execute(sql2)
     
 createtable(db)
-def insert(db,name,start_time,end_time,length,instrument,targets):
+
+def insert(db,name,actual_start_time,actual_end_time,start_time,end_time,length,instrument,targets):
     cursor = db.cursor()
-    sql = """insert into test(name,starttime,endtime,length,instrument)
-             values (%s,%s,%s,%s,%s);"""
+    sql = """insert into test(name,actualstarttime,actualendtime,starttime,endtime,length,instrument)
+             values (%s,%s,%s,%s,%s,%s,%s);"""
     
-    cursor.execute(sql,(name,start_time,end_time,length,instrument))
+    cursor.execute(sql,(name,actual_start_time,actual_end_time,start_time,end_time,length,instrument))
     for target in targets:
         target1 = target['target']
         del target['lowerLimit']
@@ -96,12 +99,14 @@ def receiveFile(conn):
                 jsonFile = json.load(f)
             f.close()
             name = jsonFile['file name']
+            actual_start_time = jsonFile['actual start time']
+            actual_end_time = jsonFile['actual end time']
             start_time = jsonFile['start time']
             end_time = jsonFile['end time']
             length = jsonFile['length']
             instrument = jsonFile['instrument']
             targets = jsonFile['EIC']
-            insert(db,name,start_time,end_time,length,instrument,targets)            
+            insert(db,name,actual_start_time,actual_end_time,start_time,end_time,length,instrument,targets)            
             pass
         elif data == 'begin to send':
             print ('create file')
@@ -151,5 +156,4 @@ while True:
     t = threading.Thread(target = connect, args = (conn,addr))
     t.start()  
   
-
 

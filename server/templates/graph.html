@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+	
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://code.highcharts.com/stock/highstock.js"></script>
+
+<script>
+var chart = null;
+
+$(document).ready(function (data) {
+    chart = Highcharts.chart('container', {
+        chart: {
+            zoomType: 'x'
+        },
+        title: {
+            text: 'Instrument Running'
+        },
+        xAxis: {
+            type: 'datetime',
+            dateTimeLabelFormats: {
+                millisecond: '%H:%M:%S.%L',
+                second: '%H:%M:%S',
+                minute: '%H:%M',
+                hour: '%H:%M',
+                day: '%m-%d',
+                week: '%m-%d',
+                month: '%Y-%m',
+                year: '%Y'
+            }
+        },
+        tooltip: {
+            dateTimeLabelFormats: {
+                millisecond: '%H:%M:%S.%L',
+                second: '%H:%M:%S',
+                minute: '%H:%M',
+                hour: '%H:%M',
+                day: '%Y-%m-%d',
+                week: '%m-%d',
+                month: '%Y-%m',
+                year: '%Y'
+            }
+        },
+        yAxis: {
+            title: {
+                text: '1:running'
+            }
+        },
+        
+        
+        series: [{            
+            name: 'aaa',
+			step: true,
+            data: {{data}}
+        }]
+    });
+});
+</script>
+</head>
+<body>
+{% for d in instruments %}
+instrument {{d[0]}}
+{% endfor %}
+
+{% block body %}
+<form name="instrument" action="/graph" method="post">
+    Please choose one of the instrument number:
+    <input type="number" name="instrument"/>
+</form>
+{% endblock %}
+
+<div id="container" style="height: 400px; min-width: 310px"></div>
+</body>
+</html>

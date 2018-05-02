@@ -18,70 +18,105 @@ class Test(db.Model):
     
     __table__ = db.Model.metadata.tables['test']
 
-class Test1(db.Model):
+class Data(db.Model):
     __table__ = db.Model.metadata.tables['data']
 
 @app.route('/',methods=['POST', 'GET'])
 def home():
-    users = Test.query.all()
-    data = Test1.query.all()
-    if request.method == 'POST':
-        return redirect(url_for('/graph'))
+    instrumentsName = db.session.query(Test.instrument).distinct().all()
+    names = db.session.query(Test.name).all()
+    test_table = db.session.query(Test).all()
+    testrowCount = db.session.query(Test).count()
+    data_table = db.session.query(Data).all()
+    datarowCount = db.session.query(Data).count()
+
+    
+    instruments = []
+    for i in instrumentsName:
+        instruments.append(i[0])
+
+    
+    mzmlNames = []
+    for i in names:
+        mzmlNames.append(i[0])
+
+    instrument_name={}    
+    for index in range(testrowCount):
+        key=test_table[index].instrument
+        value=test_table[index].name
+        if key not in instrument_name:
+            instrument_name[key]=[value]
+        else:
+            instrument_name[key].append(value)
+
+    name_target={}
+    nameTarget_data={}    
+    for index in range(datarowCount):
+        data=data_table[index].data
+        data1=str(data['RTs'])
         
-    return render_template("homePage.html",data = data)
+        data2=str(data['ints'])
+        data = data1+',,'+data2
+        
+        key=str(data_table[index].name)+str(data_table[index].EIC)
+        nameTarget_data[key]=data
+        
+        if data_table[index].name not in name_target:  
+            name_target[data_table[index].name]=[str(data_table[index].EIC)]
+        else:
+            name_target[data_table[index].name].append(str(data_table[index].EIC))
+            
+    instrument_name=json.dumps(instrument_name)
+    name_target=json.dumps(name_target)     
+    nameTarget_data=json.dumps(nameTarget_data)
+    return render_template("homePage.html",instruments=instruments,mzmlNames=mzmlNames,data_table=data_table,instrument_name=instrument_name,name_target=name_target,nameTarget_data=nameTarget_data)
 
 
 
 
 @app.route('/graph', methods=['POST', 'GET'])
 def show():
-    instruments = db.session.query(Test.instrument).distinct().all()
-    
+    info_instruments = db.session.query(Test.instrument).distinct().all()
+    instruments = []
+    for i in info_instruments:
+        instruments.append(i[0])
     if request.method == 'POST':
         num_instrument = request.form['instrument']
-        a =db.session.query(Test).filter_by(instrument=num_instrument).all()
+        info_instrument =db.session.query(Test).filter_by(instrument=num_instrument).all()
 
-        aa = []
-        for i in a:
+        data = []
+        total_lentgh = 0
+        for i in info_instrument:
             st = i.actualstarttime
-            et = i.actualendtime        
+            et = i.actualendtime
+            length = i.length
+            total_length += length
             starttime = datetime.strptime(st, "%Y-%m-%d %H:%M:%S.%f")
             endtime = datetime.strptime(et, "%Y-%m-%d %H:%M:%S.%f")
             st = int(time.mktime(starttime.timetuple()) * 1000 + starttime.microsecond/1000)
             et = int(time.mktime(endtime.timetuple()) * 1000 + endtime.microsecond/1000)
                     
-            aa.append([st,1])
-            aa.append([et,0])
+            data.append([st,1])
+            data.append([et,0])
+        ct = datetime.now()
+        ct = int(time.mktime(currenttime.timetuple()) * 1000 + currenttime.microsecond/1000)
 
-        return render_template('graph.html', instruments = instruments,data=aa)
-    
+        ft =db.session.query(Test).first().actualstarttime
+        first_time = datetime.strptime(ft, "%Y-%m-%d %H:%M:%S.%f")
+        ft = int(time.mktime(first_time.timetuple()) * 1000 + first_time.microsecond/1000)
+
+        total = ct - ft
+        return render_template('graph.html', instruments = instruments,data = data)   
     
     return render_template('graph.html', instruments = instruments)
 
 
 if __name__ == '__main__':
     app.debug = True
-    app.run()
-    #here1 = Test1.query.filter_by(name = '50uM.mzML',EIC=100).first()
-    #instruments = db.session.query(Test.instrument).distinct().all()
-    a =db.session.query(Test).filter_by(instrument=2).all()
-    aa = []
-    for i in a:
-        st = i.actualstarttime
-        et = i.actualendtime        
-        starttime = datetime.strptime(st, "%Y-%m-%d %H:%M:%S.%f")
-        endtime = datetime.strptime(et, "%Y-%m-%d %H:%M:%S.%f")
-        st = int(time.mktime(starttime.timetuple()) * 1000 + starttime.microsecond/1000)
-        et = int(time.mktime(endtime.timetuple()) * 1000 + endtime.microsecond/1000)
-        
-        aa.append([st,1])
-        aa.append([et,0])
-    print(aa)
-    #print(instruments)
-    dt = '2018-04-24 16:13:56.822434'
-    #timeArray = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S.%f")
-    #print(timeArray)
-    #a = int(time.mktime(timeArray.timetuple()) * 1000 + timeArray.microsecond/1000)
-    #print(a)
-
-
+    #app.run()
+    ct = datetime.now()
+    #currenttime = datetime.strptime(ct, "%Y-%m-%d %H:%M:%S.%f")
+    ct = int(time.mktime(ct.timetuple()) * 1000 + ct.microsecond/1000)
+    
+    
+    print(ct-ft)

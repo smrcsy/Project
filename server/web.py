@@ -14,21 +14,21 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 db.Model.metadata.reflect(db.engine)
-class Test(db.Model):
+class Info(db.Model):
     
-    __table__ = db.Model.metadata.tables['test']
+    __table__ = db.Model.metadata.tables['spl_info']
 
-class Data(db.Model):
-    __table__ = db.Model.metadata.tables['data']
+class Detail(db.Model):
+    __table__ = db.Model.metadata.tables['spl_dtl']
 
 @app.route('/',methods=['POST', 'GET'])
 def home():
-    instrumentsName = db.session.query(Test.instrument).distinct().all()
-    names = db.session.query(Test.name).all()
-    test_table = db.session.query(Test).all()
-    testrowCount = db.session.query(Test).count()
-    data_table = db.session.query(Data).all()
-    datarowCount = db.session.query(Data).count()
+    instrumentsName = db.session.query(Info.instrument).distinct().all()
+    names = db.session.query(Info.name).all()
+    Info_table = db.session.query(Info).all()
+    InforowCount = db.session.query(Info).count()
+    Detail_table = db.session.query(Detail).all()
+    DetailrowCount = db.session.query(Detail).count()
 
     
     instruments = []
@@ -41,9 +41,9 @@ def home():
         mzmlNames.append(i[0])
 
     instrument_name={}    
-    for index in range(testrowCount):
-        key=test_table[index].instrument
-        value=test_table[index].name
+    for index in range(InforowCount):
+        key=Info_table[index].instrument
+        value=Info_table[index].name
         if key not in instrument_name:
             instrument_name[key]=[value]
         else:
@@ -51,41 +51,42 @@ def home():
 
     name_target={}
     nameTarget_data={}    
-    for index in range(datarowCount):
-        data=data_table[index].data
+    for index in range(DetailrowCount):
+        data=Detail_table[index].data
         data1=str(data['RTs'])
         
         data2=str(data['ints'])
         data = data1+',,'+data2
         
-        key=str(data_table[index].name)+str(data_table[index].EIC)
+        key=str(Detail_table[index].name)+str(Detail_table[index].EIC)
         nameTarget_data[key]=data
         
-        if data_table[index].name not in name_target:  
-            name_target[data_table[index].name]=[str(data_table[index].EIC)]
+        if Detail_table[index].name not in name_target:  
+            name_target[Detail_table[index].name]=[str(Detail_table[index].EIC)]
         else:
-            name_target[data_table[index].name].append(str(data_table[index].EIC))
+            name_target[Detail_table[index].name].append(str(Detail_table[index].EIC))
             
     instrument_name=json.dumps(instrument_name)
     name_target=json.dumps(name_target)     
     nameTarget_data=json.dumps(nameTarget_data)
-    return render_template("homePage.html",instruments=instruments,mzmlNames=mzmlNames,data_table=data_table,instrument_name=instrument_name,name_target=name_target,nameTarget_data=nameTarget_data)
+    return render_template("homePage.html",instruments=instruments,mzmlNames=mzmlNames,data_table=Detail_table,instrument_name=instrument_name,name_target=name_target,nameTarget_data=nameTarget_data)
 
-
-
+@app.route('/summary', methods=['POST', 'GET'])
+def summary():
+    return render_template("summary.html")
 
 @app.route('/graph', methods=['POST', 'GET'])
 def show():
-    info_instruments = db.session.query(Test.instrument).distinct().all()
+    info_instruments = db.session.query(Info.instrument).distinct().all()
     instruments = []
     for i in info_instruments:
         instruments.append(i[0])
     if request.method == 'POST':
         num_instrument = request.form['instrument']
-        info_instrument =db.session.query(Test).filter_by(instrument=num_instrument).all()
+        info_instrument =db.session.query(Info).filter_by(instrument=num_instrument).all()
 
         data = []
-        total_lentgh = 0
+        total_length = 0
         for i in info_instrument:
             st = i.actualstarttime
             et = i.actualendtime
@@ -99,24 +100,21 @@ def show():
             data.append([st,1])
             data.append([et,0])
         ct = datetime.now()
-        ct = int(time.mktime(currenttime.timetuple()) * 1000 + currenttime.microsecond/1000)
+        ct = int(time.mktime(ct.timetuple()) * 1000 + ct.microsecond/1000)
 
-        ft =db.session.query(Test).first().actualstarttime
+        ft =db.session.query(Info).first().actualstarttime
         first_time = datetime.strptime(ft, "%Y-%m-%d %H:%M:%S.%f")
         ft = int(time.mktime(first_time.timetuple()) * 1000 + first_time.microsecond/1000)
 
         total = ct - ft
-        return render_template('graph.html', instruments = instruments,data = data)   
+        ratio = total_length/total * 100
+        rest_ratio = 100-ratio
+        return render_template('graph.html', instruments = instruments,data = data,ratio = ratio,rest_ratio = rest_ratio)   
     
     return render_template('graph.html', instruments = instruments)
 
 
 if __name__ == '__main__':
     app.debug = True
-    #app.run()
-    ct = datetime.now()
-    #currenttime = datetime.strptime(ct, "%Y-%m-%d %H:%M:%S.%f")
-    ct = int(time.mktime(ct.timetuple()) * 1000 + ct.microsecond/1000)
-    
-    
-    print(ct-ft)
+    app.run()
+   

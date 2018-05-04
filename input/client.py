@@ -15,10 +15,10 @@ import socket, ssl
 import datetime
 
 address='0.tcp.ngrok.io'   
-port=14533
+port=13413
 A_path = r"C:\Users\csy60\project\input"
 instrument = 2
-msconvert_path = r'"C:\Program Files\ProteoWizard\ProteoWizard 3.0.11806\msconvert" '
+msconvert_path = r'"C:\Program Files\ProteoWizard\ProteoWizard 3.0.11806\msconvert"'
 
 client = socket.socket()
 
@@ -49,12 +49,15 @@ def passwordResult():
 usernameResult()
 passwordResult()
 
-def sendFile(file):
+def sendFile(file_path, name):
+    msg = 'file_name' + name
+    client.send(msg.encode())
+
     #print(client.recv(1024).decode())
     client.send('begin to send'.encode())   
     print('Begin !')
-    print(file)
-    with open(file, 'r') as f:
+    print(file_path)
+    with open(file_path, 'r') as f:
         for data in f:
             client.send(data.encode())
 
@@ -94,7 +97,7 @@ class FileEventHandler(FileSystemEventHandler):
         js['start time']=min(times)
         js['end time']=max(times)
         js['length']=length
-        js['instrument']=instrument#how to get instrument???
+        js['instrument']=instrument
         
         msrun = pymzml.run.Reader(mzmlpath, obo_version = '3.71.0')
         eicTargets = [100, 200, 300] # user defined
@@ -135,7 +138,7 @@ class FileEventHandler(FileSystemEventHandler):
         file=open(jfile_pathname,'w')
         file.write(js_final)
         file.close()
-        sendFile(jfile_pathname)
+        sendFile(jfile_pathname,mzmlName.split('.')[0])
         
             
 
@@ -162,7 +165,7 @@ class FileEventHandler(FileSystemEventHandler):
                 time.sleep(1)    
                 
             #put mzml file in the file that contain this code file        
-            cmd=msconvert_path+convertname+ ' -o '+A_path
+            cmd=msconvert_path + ' ' + convertname+ ' -o '+A_path
             print(cmd)
             print(convertname)
             os.system(cmd)

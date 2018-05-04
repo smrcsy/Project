@@ -107,7 +107,7 @@ def show():
         ft = int(time.mktime(first_time.timetuple()) * 1000 + first_time.microsecond/1000)
 
         total = ct - ft
-        ratio = total_length/total * 100
+        ratio = total_length * 1000/total * 100
         rest_ratio = 100-ratio
         return render_template('graph.html', instruments = instruments,data = data,ratio = ratio,rest_ratio = rest_ratio)   
     

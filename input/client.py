@@ -15,7 +15,7 @@ import socket, ssl
 import datetime
 
 address='0.tcp.ngrok.io'   
-port=13413
+port=10669
 A_path = r"C:\Users\csy60\project\input"
 instrument = 2
 msconvert_path = r'"C:\Program Files\ProteoWizard\ProteoWizard 3.0.11806\msconvert"'
@@ -75,7 +75,7 @@ class FileEventHandler(FileSystemEventHandler):
             size+= sum([getsize(join(root, name)) for name in files])
         return size
     
-    def produceJson(self,mzmlName,actual_end_time):
+    def produceJson(self,mzmlName,actual_end_time,actual_start_time):
         jfile_path=A_path       
         jfile_pathname=jfile_path+"\\"+mzmlName.split('.')[0]+".json"
         f=open(jfile_pathname,'a')
@@ -91,7 +91,7 @@ class FileEventHandler(FileSystemEventHandler):
         intensities = msrun['TIC'].i
         length =  max(times) - min(times)
         delta_time=datetime.timedelta(seconds=length)
-        actual_start_time=actual_end_time-delta_time
+        # actual_start_time=actual_end_time-delta_time
         js['actual start time']=str(actual_start_time)
         js['actual end time']=str(actual_end_time)
         js['start time']=min(times)
@@ -147,6 +147,7 @@ class FileEventHandler(FileSystemEventHandler):
        # print "log file %s changed!" % event.src_path
         s=event.src_path
         if s.endswith('.d'):
+            actual_start_time = datetime.datetime.now()
             convertname=s.replace("\\","\\\\")
             size_list=[]
             while True:
@@ -177,7 +178,7 @@ class FileEventHandler(FileSystemEventHandler):
             time.sleep(5)
             #when convert to mzml, produce json file
             #self.produceJson("pbQC009.mzML")#change it to mzmlName
-            self.produceJson(mzmlName,actual_end_time)
+            self.produceJson(mzmlName,actual_end_time,actual_start_time)
 
 if __name__ == "__main__":
     observer = Observer()

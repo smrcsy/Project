@@ -3,83 +3,24 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="icon" href="../static/favicon.ico">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
 
-    <title>Dashboard Template for Bootstrap</title>
+    <title>Bioinformatics</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="../static/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="../static/dashboard.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='dashboard.css') }}" rel="stylesheet">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="https://code.highcharts.com/stock/highstock.js"></script>
 
-	<script>
-	var chart = null;
-
-	$(document).ready(function (data) {
-		chart = Highcharts.chart('container', {
-			chart: {
-				zoomType: 'x'
-			},
-			title: {
-				text: 'Instrument Running'
-			},
-			xAxis: {
-				type: 'datetime',
-				dateTimeLabelFormats: {
-					millisecond: '%H:%M:%S.%L',
-					second: '%H:%M:%S',
-					minute: '%H:%M',
-					hour: '%H:%M',
-					day: '%m-%d',
-					week: '%m-%d',
-					month: '%Y-%m',
-					year: '%Y'
-				}
-			},
-			tooltip: {
-				dateTimeLabelFormats: {
-					millisecond: '%H:%M:%S.%L',
-					second: '%H:%M:%S',
-					minute: '%H:%M',
-					hour: '%H:%M',
-					day: '%Y-%m-%d',
-					week: '%m-%d',
-					month: '%Y-%m',
-					year: '%Y'
-				}
-			},
-			yAxis: {
-				title: {
-					text: '1:running'
-				}
-			},
-			
-			
-			series: [{            
-				name: 'aaa',
-				step: true,
-				data: {{data}}
-			}]
-		});
-	});
-	</script>
+	
   </head>
 
   <body>
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-      <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Company name</a>
-      <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
-      <ul class="navbar-nav px-3">
-        <li class="nav-item text-nowrap">
-          <a class="nav-link" href="#">Sign out</a>
-        </li>
-      </ul>
-    </nav>
+
 
     <div class="container-fluid">
       <div class="row">
@@ -88,20 +29,12 @@
             <ul class="nav flex-column">
               <li class="nav-item">
                 <a class="nav-link" href="../">
-                  <span data-feather="home"></span>
                   <!--Dashboard <span class="sr-only">(current)</span>-->
-				  Dashboard
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="graph">
-                  <span data-feather="file"></span>
-                  Graph
+				  Data
                 </a>
               </li>
               <li class="nav-item">
                 <a class="nav-link active" href="summary">
-                  <span data-feather="shopping-cart"></span>
                   Summary
                 </a>
               </li>
@@ -114,55 +47,115 @@
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
           <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">Dashboard</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
-              <div class="btn-group mr-2">
-                <button class="btn btn-sm btn-outline-secondary">Share</button>
-                <button class="btn btn-sm btn-outline-secondary">Export</button>
-              </div>
-              <button class="btn btn-sm btn-outline-secondary dropdown-toggle">
-                <span data-feather="calendar"></span>
-                This week
-              </button>
-            </div>
+            <h1 class="h2">Summary of instruments</h1>
           </div>
-		
-          
+ 
+				{% for d in instruments %}
+				<div class="container-fluid" >
+					<div id='pie{{d}}' style="height: 400px; float: left" )></div>
+						<div style = "height: 400px")>
+							<br>{{smry_instruments[d]['count']}}  samples</br>
+							<br>{{smry_instruments[d]['hours']}}  hours</br>
+							<br>{{smry_instruments[d]['ratio']}}%  running time</br>
+						</div>
+					<div id='line{{d}}' style="height: 400px" )></div>
+				</div> 
+				<script>
+					var chart = Highcharts.chart('line{{d}}', {
+						chart: {
+							zoomType: 'x'
+						},
+						title: {
+							text: 'Instrument Running'
+						},
+						xAxis: {
+							type: 'datetime',
+							dateTimeLabelFormats: {
+								
+								second: '%H:%M:%S',
+								minute: '%H:%M',
+								hour: '%H:%M',
+								day: '%m-%d',
+								week: '%m-%d',
+								month: '%Y-%m',
+								year: '%Y'
+							}
+						},
+						tooltip: {
+							dateTimeLabelFormats: {
+								
+								second: '%H:%M:%S',
+								minute: '%H:%M',
+								hour: '%H:%M',
+								day: '%Y-%m-%d',
+								week: '%m-%d',
+								month: '%Y-%m',
+								year: '%Y'
+							}
+						},
+						yAxis: {
+							title: {
+								text: '1:running'
+							}
+						},
+						time: {
+							timezoneOffset: -10 * 60
+						},
+						
+						series: [{            
+							name: 'instrument {{d}}',
+							step: true,
+							data: {{smry_instruments[d]['data']}}
+						}]
+					});
+
+				</script>
+				<script>
+
+				var	chart = Highcharts.chart('pie{{d}}', {
+					chart: {
+						plotBackgroundColor: null,
+						plotBorderWidth: null,
+						plotShadow: false,
+						type: 'pie'
+					},
+					title: {
+						text: 'information of instrument {{d}}'
+					},
+					tooltip: {
+						pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+					},
+					plotOptions: {
+						pie: {
+							allowPointSelect: true,
+							cursor: 'pointer',
+							dataLabels: {
+								enabled: true,
+								format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+								style: {
+									color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+								}
+							}
+						}
+					},
+					series: [{
+						name: 'Percentage',
+						colorByPoint: true,
+						data: [{
+							name: 'rest time',
+							y: {{smry_instruments[d]['rest_ratio']}},            
+						}, {
+							name: 'running time',
+							y: {{smry_instruments[d]['ratio']}}
+						}]
+					}]
+				})
+				</script>
+				{% endfor %} 
 		  
-			{% for d in instruments %}
-			instrument {{d}}
-			{% endfor %}
-
-			{% block body %}
-			<form name="instrument" action="/graph" method="post">
-				Please choose one of the instrument number:
-				<input type="number" name="instrument"/>
-			</form>
-			{% endblock %}
-
-			<div id="container" style="height: 400px; min-width: 310px"></div>
-         
-          
+		  
         </main>
       </div>
     </div>
-
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
-    <script src="../../../../assets/js/vendor/popper.min.js"></script>
-    <script src="../../../../dist/js/bootstrap.min.js"></script>
-
-    <!-- Icons -->
-    <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
-    <script>
-      feather.replace()
-    </script>
-
-    <!-- Graphs -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
-    
   </body>
 </html>

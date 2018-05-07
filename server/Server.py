@@ -3,7 +3,7 @@ import mysql.connector
 import os,sys
 import time
 import json
-
+from datetime import datetime
 def connectdb():
     print('connect to server')
     db = mysql.connector.connect(user = 'root',password = 'MINCSY417',
@@ -20,8 +20,8 @@ def createtable(db):
     sql1 = """create table if not exists SPL_INFO(
              id int4 auto_increment primary key,
              name varchar(255),
-             actualstarttime varchar(255),
-             actualendtime varchar(255),
+             actualstarttime datetime(6),
+             actualendtime datetime(6),
              starttime decimal(20,18),
              endtime decimal(20,18),
              length decimal(20,18),
@@ -106,6 +106,8 @@ def receiveFile(conn):
             length = jsonFile['length']
             instrument = jsonFile['instrument']
             targets = jsonFile['EIC']
+            actual_start_time = datetime.strptime(actual_start_time, "%Y-%m-%d %H:%M:%S.%f")
+            actual_end_time = datetime.strptime(actual_end_time, "%Y-%m-%d %H:%M:%S.%f")
             insert(db,name,actual_start_time,actual_end_time,start_time,end_time,length,instrument,targets)            
             pass
         elif data == 'begin to send':

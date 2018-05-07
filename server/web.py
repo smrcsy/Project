@@ -6,7 +6,9 @@ from sqlalchemy.orm import scoped_session, sessionmaker, Query
 from flask import Flask,redirect,url_for  
 import json
 import time
+from collections import defaultdict
 from datetime import datetime
+
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:MINCSY417@localhost:3306/projectdb'
@@ -69,21 +71,36 @@ def home():
     instrument_name=json.dumps(instrument_name)
     name_target=json.dumps(name_target)     
     nameTarget_data=json.dumps(nameTarget_data)
+    if request.method == 'POST':
+        sttime = request.form['starttime']
+        ettime = request.form['endtime']
+        inst = request.form['instrument']
+        sttime = datetime.strptime(sttime, "%Y-%m-%d %H:%M")
+        
+        info_instrument = db.session.query(Info).filter_by(instrument=inst).filter(Info.actualstarttime > sttime,Info.actualendtime<ettime).all()
+        samples = []
+        for i in info_instrument:
+            sample = db.session.query(Detail).filter_by(name = i.name).all()
+            samples.append(sample)
+        
+        return render_template("homePage.html",instruments=instruments,info_instrument = info_instrument,samples = samples)
     return render_template("homePage.html",instruments=instruments,mzmlNames=mzmlNames,data_table=Detail_table,instrument_name=instrument_name,name_target=name_target,nameTarget_data=nameTarget_data)
 
+@app.route('/index', methods=['POST', 'GET'])
+def index():
+    return render_template("index.html")
 @app.route('/summary', methods=['POST', 'GET'])
 def summary():
-    return render_template("summary.html")
-
-@app.route('/graph', methods=['POST', 'GET'])
-def show():
+    # get the count of instruments [instrument1, 2, 3..]
     info_instruments = db.session.query(Info.instrument).distinct().all()
     instruments = []
     for i in info_instruments:
         instruments.append(i[0])
-    if request.method == 'POST':
-        num_instrument = request.form['instrument']
-        info_instrument =db.session.query(Info).filter_by(instrument=num_instrument).all()
+    sorted(instruments)
+    smry_instruments = defaultdict(dict)
+    for j in instruments:
+        info_instrument = db.session.query(Info).filter_by(instrument=j).all()
+        count_sample = len(info_instrument)
 
         data = []
         total_length = 0
@@ -92,26 +109,31 @@ def show():
             et = i.actualendtime
             length = i.length
             total_length += length
-            starttime = datetime.strptime(st, "%Y-%m-%d %H:%M:%S.%f")
-            endtime = datetime.strptime(et, "%Y-%m-%d %H:%M:%S.%f")
-            st = int(time.mktime(starttime.timetuple()) * 1000 + starttime.microsecond/1000)
-            et = int(time.mktime(endtime.timetuple()) * 1000 + endtime.microsecond/1000)
-                    
-            data.append([st,1])
-            data.append([et,0])
-        ct = datetime.now()
-        ct = int(time.mktime(ct.timetuple()) * 1000 + ct.microsecond/1000)
+            #starttime = datetime.strptime(st, "%Y-%m-%d %H:%M:%S.%f")
+            #endtime = datetime.strptime(et, "%Y-%m-%d %H:%M:%S.%f")
+            st = int(time.mktime(st.timetuple()) * 1000 + st.microsecond / 1000)
+            et = int(time.mktime(et.timetuple()) * 1000 + et.microsecond / 1000)
 
-        ft =db.session.query(Info).first().actualstarttime
-        first_time = datetime.strptime(ft, "%Y-%m-%d %H:%M:%S.%f")
-        ft = int(time.mktime(first_time.timetuple()) * 1000 + first_time.microsecond/1000)
+            data.append([st, 1])
+            data.append([et, 0])
+        ct = datetime.now()
+        ct = int(time.mktime(ct.timetuple()) * 1000 + ct.microsecond / 1000)
+
+        ft = db.session.query(Info).first().actualstarttime
+        #first_time = datetime.strptime(ft, "%Y-%m-%d %H:%M:%S.%f")
+        ft = int(time.mktime(ft.timetuple()) * 1000 + ft.microsecond / 1000)
 
         total = ct - ft
-        ratio = total_length * 1000/total * 100
-        rest_ratio = 100-ratio
-        return render_template('graph.html', instruments = instruments,data = data,ratio = ratio,rest_ratio = rest_ratio)   
-    
-    return render_template('graph.html', instruments = instruments)
+        ratio = round(total_length * 1000 / total * 100, 2)
+        rest_ratio = 100 - ratio
+        smry_instruments[j]['count'] = count_sample
+        smry_instruments[j]['hours'] = round(total/3600000,2)
+        smry_instruments[j]['ratio'] = ratio
+        smry_instruments[j]['rest_ratio'] = rest_ratio
+        smry_instruments[j]['data'] = data
+        # smry_insruments = json.dumps(smry_instruments)
+    return render_template("summary.html", smry_instruments = smry_instruments, instruments = instruments)
+
 
 
 if __name__ == '__main__':

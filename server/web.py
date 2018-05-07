@@ -26,18 +26,20 @@ class Detail(db.Model):
 @app.route('/',methods=['POST', 'GET'])
 def home():
     instrumentsName = db.session.query(Info.instrument).distinct().all()
+    '''
+    #check
     names = db.session.query(Info.name).all()
     Info_table = db.session.query(Info).all()
     InforowCount = db.session.query(Info).count()
     Detail_table = db.session.query(Detail).all()
     DetailrowCount = db.session.query(Detail).count()
-
+    '''
     
     instruments = []
     for i in instrumentsName:
         instruments.append(i[0])
 
-    
+    '''
     mzmlNames = []
     for i in names:
         mzmlNames.append(i[0])
@@ -71,6 +73,7 @@ def home():
     instrument_name=json.dumps(instrument_name)
     name_target=json.dumps(name_target)     
     nameTarget_data=json.dumps(nameTarget_data)
+    '''
     if request.method == 'POST':
         sttime = request.form['starttime']
         ettime = request.form['endtime']
@@ -78,17 +81,27 @@ def home():
         sttime = datetime.strptime(sttime, "%Y-%m-%d %H:%M")
         
         info_instrument = db.session.query(Info).filter_by(instrument=inst).filter(Info.actualstarttime > sttime,Info.actualendtime<ettime).all()
-        samples = []
+        samples = {}
+        samples1 = {}
         for i in info_instrument:
             sample = db.session.query(Detail).filter_by(name = i.name).all()
-            samples.append(sample)
-        
-        return render_template("homePage.html",instruments=instruments,info_instrument = info_instrument,samples = samples)
-    return render_template("homePage.html",instruments=instruments,mzmlNames=mzmlNames,data_table=Detail_table,instrument_name=instrument_name,name_target=name_target,nameTarget_data=nameTarget_data)
+            samples[i.name] = sample
+            nameTar={}       
+            for j in sample:                
+                data=j.data
+                data1=str(data['RTs'])
+                data1 = data1[1:len(data1)-1]
+                data2=str(data['ints'])
+                data2 = data2[1:len(data2)-1]
+                data = data1+',,'+data2        
+                key=str(j.EIC)
+                nameTar[key]=data
+            samples1[str(i.name)] = nameTar
+        samples1 = json.dumps(samples1)
+        return render_template("homePage.html",instruments=instruments,info_instrument = info_instrument,samples = samples, samples1 = samples1)
+    return render_template("homePage.html",instruments=instruments)
 
-@app.route('/index', methods=['POST', 'GET'])
-def index():
-    return render_template("index.html")
+
 @app.route('/summary', methods=['POST', 'GET'])
 def summary():
     # get the count of instruments [instrument1, 2, 3..]

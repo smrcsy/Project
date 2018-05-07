@@ -3,7 +3,6 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
     <title>Bioinformatics</title>
 
     <!-- Bootstrap core CSS -->
@@ -14,10 +13,13 @@
     <link href="../static/dashboard.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
+
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 	<script src="../static/bootstrap-datetimepicker.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/js/bootstrap-multiselect.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/css/bootstrap-multiselect.css" type="text/css"/>
 
 	
   </head>
@@ -58,6 +60,7 @@
 
 					  {% for d in instruments %}
 					    <option>{{d}}</option>
+						
 					  {% endfor %}  
 					</select>
 			</div>
@@ -84,8 +87,64 @@
 			</div>			
 			<button type="submit" class="btn btn-primary">Search</button>
 		</form>
-		{{info_instrument}}
-		{{samples}}
+	
+			{% for d in info_instrument %}
+			<br>
+			<label>{{d['name']}}</label>
+			</br>
+			<br>
+			<select id="{{d['id']}}" name = "multiselect{{d['id']}}" multiple="multiple" >
+			
+				{% for i in samples[d['name']] %}
+				<option value = "{{i['EIC']}}">{{i['EIC']}}</option>
+				{% endfor %}
+			</select>			
+			<button onclick = getGraph("multiselect{{d['id']}}","{{d['name']}}")>Show</button>
+	
+			</br>
+				<script type="text/javascript">
+					$(document).ready(function() {
+						$('#{{d['id']}}').multiselect({
+							buttonWidth: '400px'
+						});
+					});
+				</script>
+				<style type="text/css">
+					.multiselect-container {
+						width: 100% !important;
+					}
+				</style>
+			{% endfor %}
+			<script>
+			function getGraph(Id,name){
+				var data=document.getElementsByName(Id)[0];	
+				var samples = jQuery.parseJSON('{{ samples1|safe }}');  
+				var graph_data=new Array();
+				for(i=0; i < data.length; i++){
+					if(data.options[i].selected){
+						var a = String(data.options[i].value);
+						var x1 = samples[name][a].split(',,')[0].split(',');
+						var y1 = samples[name][a].split(',,')[1].split(',');
+						var b = i
+						b = {	x: x1,
+								y: y1,
+								mode:'lines'};
+						
+						graph_data.push(b);
+						
+					};
+				};
+				Plotly.newPlot('graph1',graph_data);				
+				
+			}
+			</script>
+			<div id = 'graph1' ></div>
+			<div id = 'graph' style='float:left;'></div>
+			
+			
+			
+		 
+		
 
 
         </main>

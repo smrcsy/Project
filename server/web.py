@@ -78,7 +78,7 @@ def home():
         sttime = request.form['starttime']
         ettime = request.form['endtime']
         inst = request.form['instrument']
-        sttime = datetime.strptime(sttime, "%Y-%m-%d %H:%M")
+        #sttime = datetime.strptime(sttime, "%Y-%m-%d %H:%M")
         
         info_instrument = db.session.query(Info).filter_by(instrument=inst).filter(Info.actualstarttime > sttime,Info.actualendtime<ettime).all()
         samples = {}

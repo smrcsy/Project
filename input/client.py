@@ -13,12 +13,23 @@ import matplotlib.pyplot as plt
 import json
 import socket, ssl
 import datetime
+import configparser
 
-address='0.tcp.ngrok.io'   
-port=10669
-A_path = r"C:\Users\csy60\project\input"
-instrument = 2
-msconvert_path = r'"C:\Program Files\ProteoWizard\ProteoWizard 3.0.11806\msconvert"'
+config = configparser.ConfigParser()
+
+config.read('config.ini')
+
+address=config.get('section3','address')
+port=config.getint('section3','port')
+
+A_path = config.get('section2','file_path')
+msconvert_path = config.get('section2','msconvert_path')
+
+instrument = config.get('section1','instrument')
+username = config.get('section1','username')
+password = config.get('section1','password')
+
+eicTargets = json.loads(config.get('section4','EIC_targets'))
 
 client = socket.socket()
 
@@ -27,7 +38,7 @@ client.connect((address,port))
 
 def usernameResult():
     while True:
-        username = input('please input your username:')
+        #username = input('please input your username:')
         client.sendall(('username:' + username).encode())
         recv_msg = client.recv(1024).decode()
         if recv_msg == 'valid':
@@ -37,10 +48,11 @@ def usernameResult():
             continue
 def passwordResult():
     while True:
-        password = input('please input your password:')
+        #password = input('please input your password:')
         client.sendall(('password:' + password).encode())
         recv_msg = client.recv(1024).decode()
         if recv_msg == 'valid':
+            print('valid user')
             break
         else:
             print('Wrong username, please try again')
@@ -80,7 +92,7 @@ class FileEventHandler(FileSystemEventHandler):
         jfile_pathname=jfile_path+"\\"+mzmlName.split('.')[0]+".json"
         f=open(jfile_pathname,'a')
         f.close
-        print(1)
+
         js={}#create a empty dict for json data
         js['file name']=mzmlName
 	
@@ -183,6 +195,7 @@ class FileEventHandler(FileSystemEventHandler):
 if __name__ == "__main__":
     observer = Observer()
     event_handler = FileEventHandler()
+    print('waiting for files')
     observer.schedule(event_handler,A_path,True)
     observer.start()
     try:

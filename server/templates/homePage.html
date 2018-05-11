@@ -65,11 +65,14 @@
 					</select>
 			</div>
 			<div class="form-group">
+					
 				<label>Time select</label>
+			<br>
 				<label for="from">from</label>
 				<input type="text" id="from" name="starttime">
 				<label for="to">to</label>
 				<input type="text" id="to" name="endtime">
+			</br>
 					<script type="text/javascript">
 						$("#from").datetimepicker({
 							format: "yyyy-mm-dd hh:ii",
@@ -77,12 +80,15 @@
 							todayBtn: true,
 							pickerPosition: "bottom-left"
 						});
+
 						$("#to").datetimepicker({
 							format: "yyyy-mm-dd hh:ii",
 							autoclose: true,
 							todayBtn: true,
-							pickerPosition: "bottom-left"
+							pickerPosition: "bottom-left",
 						});
+						
+
 					</script>					
 			</div>			
 			<button type="submit" class="btn btn-primary">Search</button>
@@ -90,11 +96,8 @@
 	
 			{% for d in info_instrument %}
 			<br>
-			<label>{{d['name']}}</label>
-			</br>
-			<br>
-			<select id="{{d['id']}}" name = "multiselect{{d['id']}}" multiple="multiple" >
-			
+			<select id="{{d['id']}}" name = "multiselect{{d['id']}}" multiple="multiple">
+				<option value = "" selected disabled hidden>{{d['name']}}</option>
 				{% for i in samples[d['name']] %}
 				<option value = "{{i['EIC']}}">{{i['EIC']}}</option>
 				{% endfor %}
@@ -105,7 +108,7 @@
 				<script type="text/javascript">
 					$(document).ready(function() {
 						$('#{{d['id']}}').multiselect({
-							buttonWidth: '400px'
+							buttonWidth: '800px'
 						});
 					});
 				</script>
@@ -120,7 +123,7 @@
 				var data=document.getElementsByName(Id)[0];	
 				var samples = jQuery.parseJSON('{{ samples1|safe }}');  
 				var graph_data=new Array();
-				for(i=0; i < data.length; i++){
+				for(i=1; i < data.length; i++){
 					if(data.options[i].selected){
 						var a = String(data.options[i].value);
 						var x1 = samples[name][a].split(',,')[0].split(',');

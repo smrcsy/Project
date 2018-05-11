@@ -89,10 +89,10 @@ def checkPassword(username,password,conn):
         return 'invalid'
     
 def receiveFile(conn):
-
+    s = 'jsonfile'
     while True:
         data = conn.recv(1024).decode()
-   
+        
         if data == 'finish':
             print ('reach the end of file')
             with open('./' + s +'.json','r') as f:

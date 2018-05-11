@@ -29,7 +29,6 @@ instrument = config.get('section1','instrument')
 username = config.get('section1','username')
 password = config.get('section1','password')
 
-eicTargets = json.loads(config.get('section4','EIC_targets'))
 
 client = socket.socket()
 
@@ -112,7 +111,9 @@ class FileEventHandler(FileSystemEventHandler):
         js['instrument']=instrument
         
         msrun = pymzml.run.Reader(mzmlpath, obo_version = '3.71.0')
-        eicTargets = [100, 200, 300] # user defined
+         # user defined
+        config.read('config.ini')
+        eicTargets = json.loads(config.get('section4','EIC_targets'))
         eicTol = 0.03 # user defined
         results = []
         for eicTarget in eicTargets:

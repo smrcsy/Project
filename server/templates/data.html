@@ -29,18 +29,18 @@
 
     <div class="container-fluid">
       <div class="row">
-        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+        <nav class="col-md-1 d-none d-md-block bg-light sidebar">
           <div class="sidebar-sticky">
             <ul class="nav flex-column">
               <li class="nav-item">
-                <a class="nav-link active" href="../">
+                <a class="nav-link" href="../">
                   <!--Dashboard <span class="sr-only">(current)</span>-->
-				  Data
+				  Instrument Uptime
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="summary">
-                  Summary
+                <a class="nav-link active" href="data">
+                  Data
                 </a>
               </li>              
             </ul>           
@@ -52,15 +52,14 @@
             <h1 class="h2">Data</h1>
           </div>
 		
-			
+	
 		<form method="post">
 			<div class="form-group">	
 				<label>Instrument select</label>                          
 					<select class="form-control" id="select" name="instrument">	
 
 					  {% for d in instruments %}
-					    <option>{{d}}</option>
-						
+					    <option>{{d}}</option>						
 					  {% endfor %}  
 					</select>
 			</div>
@@ -69,29 +68,56 @@
 				<label>Time select</label>
 			<br>
 				<label for="from">from</label>
-				<input type="text" id="from" name="starttime">
+				<input type="text" id="fromdate" name="starttime1">
+				<input type="text" id="fromtime" name="starttime2">
 				<label for="to">to</label>
-				<input type="text" id="to" name="endtime">
+				<input type="text" id="todate" name="endtime1">
+				<input type="text" id="totime" name="endtime2">
 			</br>
 					<script type="text/javascript">
-						$("#from").datetimepicker({
-							format: "yyyy-mm-dd hh:ii",
-							autoclose: true,
-							todayBtn: true,
-							pickerPosition: "bottom-left"
-						});
-
-						$("#to").datetimepicker({
-							format: "yyyy-mm-dd hh:ii",
+						$("#fromdate").datetimepicker({
+							format: "yyyy-mm-dd",
 							autoclose: true,
 							todayBtn: true,
 							pickerPosition: "bottom-left",
+							minView: "month"
+						});
+
+						$("#todate").datetimepicker({
+							format: "yyyy-mm-dd",
+							autoclose: true,
+							todayBtn: true,
+							pickerPosition: "bottom-left",
+							minView: "month"
+						});
+						
+						$("#fromtime").datetimepicker({
+							format: "hh:ii",
+							autoclose: true,
+							todayBtn: true,
+							pickerPosition: "bottom-left",
+							startView:1,
+							minuteStep:1
+						});
+
+						$("#totime").datetimepicker({
+							format: "hh:ii",
+							autoclose: true,
+							todayBtn: true,
+							pickerPosition: "bottom-left",
+							startView:1,
+							minuteStep:1
 						});
 						
 
 					</script>					
 			</div>			
 			<button type="submit" class="btn btn-primary">Search</button>
+			<input type= "hidden" name = "form" value="data">
+		</form>
+		<form method="post">
+			<button type="submit" class="btn btn-primary">show all</button>
+			<input type= "hidden" name = "form" value="all">
 		</form>
 	
 			{% for d in info_instrument %}

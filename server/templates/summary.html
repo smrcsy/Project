@@ -9,14 +9,24 @@
 
     <!-- Bootstrap core CSS -->
     <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
-
+	<link rel="stylesheet" href="../static/datetimepicker.css" />
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='dashboard.css') }}" rel="stylesheet">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="https://code.highcharts.com/stock/highstock.js"></script>
-
-	
+	<script src="../static/bootstrap-datetimepicker.js"></script>
+	<style>
+	hr { 
+		display: block;
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+		margin-left: auto;
+		margin-right: auto;
+		border-style: inset;
+		border-width: 1px;
+	} 
+	</style>
   </head>
 
   <body>
@@ -24,18 +34,18 @@
 
     <div class="container-fluid">
       <div class="row">
-        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+        <nav class="col-md-1 d-none d-md-block bg-light sidebar">
           <div class="sidebar-sticky">
             <ul class="nav flex-column">
               <li class="nav-item">
-                <a class="nav-link" href="../">
+                <a class="nav-link active" href="../">
                   <!--Dashboard <span class="sr-only">(current)</span>-->
-				  Data
+				  Instrument Uptime
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link active" href="summary">
-                  Summary
+                <a class="nav-link" href="data">
+                  Data
                 </a>
               </li>
               
@@ -49,8 +59,52 @@
           <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
             <h1 class="h2">Summary of instruments</h1>
           </div>
- 
-				{% for d in instruments %}
+		  
+		  <form method="post">
+			<div class="form-group">	
+				<label>Instrument select</label>                          
+					<fieldset>
+					  {% for d in instruments %}
+					  <div>
+						<input type="checkbox" id="{{d}}" name="instrument" value = "{{d}}">
+						<label for="coding">instrument {{d}}</label>
+					  </div>
+					  {% endfor %}  
+						  
+					</fieldset>
+			</div>
+			<div class="form-group">
+					
+				<label>Time select</label>
+			<br>
+				<label for="from">from</label>
+				<input type="text" id="fromdate" name="starttime">
+				<label for="to">to</label>
+				<input type="text" id="todate" name="endtime">
+			</br>
+					<script type="text/javascript">
+						$("#fromdate").datetimepicker({
+							format: "yyyy-mm-dd",
+							autoclose: true,
+							todayBtn: true,
+							pickerPosition: "bottom-left",
+							minView: "month"
+						});
+
+						$("#todate").datetimepicker({
+							format: "yyyy-mm-dd",
+							autoclose: true,
+							todayBtn: true,
+							pickerPosition: "bottom-left",
+							minView: "month"
+						});
+					</script>					
+			</div>			
+			<button type="submit" class="btn btn-primary">Search</button>
+			<input type= "hidden" name = "form" value="summary">
+		  </form>
+	{{inst}}
+				{% for d in inst %}
 				<div class="container-fluid" >
 					<div id='pie{{d}}' style="height: 400px; float: left" )></div>
 						<div style = "height: 400px")>
@@ -59,6 +113,7 @@
 							<br>{{smry_instruments[d]['ratio']}}%  running time</br>
 						</div>
 					<div id='line{{d}}' style="height: 400px" )></div>
+					<hr>
 				</div> 
 				<script>
 					var chart = Highcharts.chart('line{{d}}', {
@@ -143,7 +198,7 @@
 						colorByPoint: true,
 						data: [{
 							name: 'rest time',
-							y: {{smry_instruments[d]['rest_ratio']}},            
+							y: {{smry_instruments[d]['rest_ratio']}}         
 						}, {
 							name: 'running time',
 							y: {{smry_instruments[d]['ratio']}}
@@ -153,7 +208,7 @@
 				</script>
 				{% endfor %} 
 		  
-		  
+
         </main>
       </div>
     </div>

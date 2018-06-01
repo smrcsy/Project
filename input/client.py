@@ -14,40 +14,46 @@ import json
 import socket, ssl
 import datetime
 import configparser
-
+import subprocess
+#read config file
 config = configparser.ConfigParser()
 
 config.read('config.ini')
-
+#read server's address and port number
 address=config.get('section3','address')
 port=config.getint('section3','port')
-
+#the folder being monitored, put raw files into this path 
 A_path = config.get('section2','file_path')
+#the path of msconvert eg. msconvert.exe
 msconvert_path = config.get('section2','msconvert_path')
-
+# the name of instrument
 instrument = config.get('section1','instrument')
+# the username and password used to validate
 username = config.get('section1','username')
 password = config.get('section1','password')
 
-
+#create a new socket
 client = socket.socket()
-
+#load the self-signed crtificate
 client = ssl.wrap_socket(client,ca_certs="cert.pem",cert_reqs=ssl.CERT_REQUIRED)  
+# connect to the server
 client.connect((address,port))
-
+# send user's name and read the result from the server
 def usernameResult():
     while True:
-        #username = input('please input your username:')
+        
         client.sendall(('username:' + username).encode())
+        
         recv_msg = client.recv(1024).decode()
         if recv_msg == 'valid':
             break
         else:
             print('Wrong username, please try again')
             continue
+# send user's password and read the result from the server
 def passwordResult():
     while True:
-        #password = input('please input your password:')
+        
         client.sendall(('password:' + password).encode())
         recv_msg = client.recv(1024).decode()
         if recv_msg == 'valid':
@@ -56,24 +62,24 @@ def passwordResult():
         else:
             print('Wrong username, please try again')
             continue
-        
+print('checking user information')        
 usernameResult()
 passwordResult()
 
+#send json file to the server
 def sendFile(file_path, name):
     msg = 'file_name' + name
     client.send(msg.encode())
-
-    #print(client.recv(1024).decode())
+#set a flag before sending the file
     client.send('begin to send'.encode())   
-    print('Begin !')
-    print(file_path)
+    print('Sending the file from ' + file_path)
     with open(file_path, 'r') as f:
         for data in f:
             client.send(data.encode())
 
         client.send('finish'.encode())
         print ('Finish !')
+# monitor folder
 class FileEventHandler(FileSystemEventHandler):
     
     def __init__(self):

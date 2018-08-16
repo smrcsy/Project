@@ -11,7 +11,7 @@ import datetime
 #from datetime import datetime
 app = Flask(__name__)
 #config information to connect to the database, other database could also be accepted
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:MINCSY417@localhost:3306/projectdb'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:define@localhost:3306/projectdb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)

@@ -9,7 +9,7 @@ def connectdb():
     print('connect to database')
 #the parameters should be set on your own
 #database parameter refers to the scheme, user needs to build a new scheme manully
-    db = mysql.connector.connect(user = 'root',password = 'MINCSY417',
+    db = mysql.connector.connect(user = 'root',password = '',
                                  host = 'localhost',database = 'projectdb')
 
     print('the server has been connected to the database!')
